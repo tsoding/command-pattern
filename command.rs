@@ -11,35 +11,59 @@ struct Command {
 
 static mut COMMANDS: Vec<Command> = Vec::new();
 
+fn expect_literal(lex: &mut impl Iterator<Item=TokenTree>) -> Literal {
+    match lex.next() {
+        Some(TokenTree::Literal(literal)) => literal,
+        Some(_token) => panic!("Expected literal but got something else"),
+        None => panic!("Expected literal but got nothing"),
+    }
+}
+
+fn expect_specific_punct(lex: &mut impl Iterator<Item=TokenTree>, ch: char) -> Punct {
+    match lex.next() {
+        Some(TokenTree::Punct(punct)) => if punct.as_char() == ch {
+            punct
+        } else {
+            panic!("Expected punct `{expected}`, but got `{actual}`", expected = ch, actual = punct.as_char())
+        },
+        Some(_token) => panic!("Expected punct but got something else"),
+        None => panic!("Expected punct but got nothing"),
+    }
+}
+
+fn expect_specific_ident(lex: &mut impl Iterator<Item=TokenTree>, name: &str) -> Ident {
+    match lex.next() {
+        Some(TokenTree::Ident(ident)) => {
+            if ident.to_string() == name {
+                ident
+            } else {
+                panic!("Expected indent `{expected}` but got `{actual}`", expected = ident, actual = name)
+            }
+        },
+        Some(_token) => panic!("Expected ident but got something else"),
+        None => panic!("Expected ident but got nothing"),
+    }
+}
+
+fn expect_ident(lex: &mut impl Iterator<Item=TokenTree>) -> Ident {
+    match lex.next() {
+        Some(TokenTree::Ident(ident)) => ident,
+        Some(_token) => panic!("Expected ident but got something else"),
+        None => panic!("Expected ident but got nothing"),
+    }
+}
+
 #[proc_macro_attribute]
 pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut args_iter = args.into_iter();
-    let name = match args_iter.next() {
-        Some(TokenTree::Literal(literal)) => literal.to_string(),
-        Some(_token) => panic!("Expected literal but got something else"),
-        None => panic!("Expected literal but got nothing"),
-    };
-    match args_iter.next() {
-        Some(TokenTree::Punct(_punct)) => {},
-        Some(_token) => panic!("Expected punct but got something else"),
-        None => panic!("Expected punct but got nothing"),
-    };
-    let description = match args_iter.next() {
-        Some(TokenTree::Literal(literal)) => literal.to_string(),
-        Some(_token) => panic!("Expected literal but got something else"),
-        None => panic!("Expected literal but got nothing"),
-    };
+    let name = expect_literal(&mut args_iter).to_string();
+    let _ = expect_specific_punct(&mut args_iter, ',');
+    let description = expect_literal(&mut args_iter).to_string();
+
     let mut input_iter = input.clone().into_iter();
-    match input_iter.next() {
-        Some(TokenTree::Ident(_ident)) => {},
-        Some(_token) => panic!("Expected ident but got something else"),
-        None => panic!("Expected ident but got nothing"),
-    };
-    let run = match input_iter.next() {
-        Some(TokenTree::Ident(ident)) => ident.to_string(),
-        Some(_token) => panic!("Expected ident but got something else"),
-        None => panic!("Expected ident but got nothing"),
-    };
+    let _ = expect_specific_ident(&mut input_iter, "fn");
+    let run = expect_ident(&mut input_iter).to_string();
+
     unsafe {
         COMMANDS.push(Command {name, description, run})
     }
