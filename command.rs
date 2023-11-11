@@ -72,20 +72,20 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
 
 fn render_command_fields(command: &Command) -> TokenStream {
     let mut tokens: Vec<TokenTree> = Vec::new();
-    tokens.push(TokenTree::Ident(Ident::new("name", Span::call_site())));
-    tokens.push(TokenTree::Punct(Punct::new(':', Spacing::Alone)));
-    tokens.push(TokenTree::Literal(command.name.parse::<Literal>().unwrap()));
-    tokens.push(TokenTree::Punct(Punct::new(',', Spacing::Alone)));
+    tokens.push(Ident::new("name", Span::call_site()).into());
+    tokens.push(Punct::new(':', Spacing::Alone).into());
+    tokens.push(command.name.parse::<Literal>().unwrap().into());
+    tokens.push(Punct::new(',', Spacing::Alone).into());
 
-    tokens.push(TokenTree::Ident(Ident::new("description", Span::call_site())));
-    tokens.push(TokenTree::Punct(Punct::new(':', Spacing::Alone)));
-    tokens.push(TokenTree::Literal(command.description.parse::<Literal>().unwrap()));
-    tokens.push(TokenTree::Punct(Punct::new(',', Spacing::Alone)));
+    tokens.push(Ident::new("description", Span::call_site()).into());
+    tokens.push(Punct::new(':', Spacing::Alone).into());
+    tokens.push(command.description.parse::<Literal>().unwrap().into());
+    tokens.push(Punct::new(',', Spacing::Alone).into());
 
-    tokens.push(TokenTree::Ident(Ident::new("run", Span::call_site())));
-    tokens.push(TokenTree::Punct(Punct::new(':', Spacing::Alone)));
-    tokens.push(TokenTree::Ident(Ident::new(&command.run, Span::call_site())));
-    tokens.push(TokenTree::Punct(Punct::new(',', Spacing::Alone)));
+    tokens.push(Ident::new("run", Span::call_site()).into());
+    tokens.push(Punct::new(':', Spacing::Alone).into());
+    tokens.push(Ident::new(&command.run, Span::call_site()).into());
+    tokens.push(Punct::new(',', Spacing::Alone).into());
 
     TokenStream::from_iter(tokens)
 }
@@ -94,9 +94,9 @@ fn render_commands() -> TokenStream {
     let mut tokens: Vec<TokenTree> = Vec::new();
     unsafe {
         for command in COMMANDS.iter() {
-            tokens.push(TokenTree::Ident(Ident::new("Command", Span::call_site())));
-            tokens.push(TokenTree::Group(Group::new(Delimiter::Brace, render_command_fields(&command))));
-            tokens.push(TokenTree::Punct(Punct::new(',', Spacing::Alone)));
+            tokens.push(Ident::new("Command", Span::call_site()).into());
+            tokens.push(Group::new(Delimiter::Brace, render_command_fields(&command)).into());
+            tokens.push(Punct::new(',', Spacing::Alone).into());
         }
     }
     TokenStream::from_iter(tokens)
